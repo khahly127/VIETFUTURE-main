@@ -1,0 +1,69 @@
+Created At: 2026-06-06T04:52:55Z
+Completed At: 2026-06-06T04:52:55Z
+File Path: `file:///d:/VIETFUTURE/FE/src/components/Roadmap/Roadmap2.jsx`
+Total Lines: 668
+Total Bytes: 38364
+Showing lines 1 to 668
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: import React, { useState, useEffect, useRef } from "react";
+2: import { useNavigate } from "react-router-dom";
+3: // Import thêm ArrowRight từ thư viện lucide-react để đồng bộ icon cho nút bấm mới
+4: import { ArrowRight } from "lucide-react";
+5: 
+6: export default function Roadmap2() {
+7:   const navigate = useNavigate();
+8:   
+9:   // ── STATE MANAGEMENT ──
+10:   const [aiData, setAiData] = useState(null);
+11:   const [currentNodeId, setCurrentNodeId] = useState(null);
+12:   const [loading, setLoading] = useState(true);
+13:   
+14:   const treeWrapRef = useRef(null);
+15:   const svgRef = useRef(null);
+16: 
+17:   // ── HOOK LOAD DATA & FALLBACK ──
+18:   useEffect(() => {
+19:     // Mô phỏng hiệu ứng quét AI chạy mượt trong 800ms
+20:     const timer = setTimeout(() => {
+21:       let storedData = null;
+22:       try {
+23:         // Kiểm tra cả 2 key lưu trữ để tránh lỗi đồng bộ
+24:         const raw = localStorage.getItem("devpath_ai_result") || localStorage.getItem("devpath_analysis_result");
+25:         if (raw) storedData = JSON.parse(raw);
+26:       } catch (e) {
+27:         console.error("Lỗi đọc dữ liệu roadmap từ localStorage", e);
+28:       }
+29: 
+30:       // Nếu dữ liệu từ UploadCV truyền sang ở dạng rút gọn, ta map nó vào cấu trúc giao diện chuẩn
+31:       if (storedData && !storedData.nodes) {
+32:         storedData = generateFullDataFromSimple(storedData.role, storedData.missing || [], storedData.hasCV);
+33:       }
+34: 
+35:       // Nếu hoàn toàn chưa có d
+<truncated 38027 bytes>
+ kết hợp cơ chế phân quyền tài khoản.",
+645:         status: "todo", pct: 0, cvMatch: false,
+646:         checklist: ["Mã hóa bảo mật mật khẩu với thư viện bcrypt", "Cấp phát Access Token & Refresh Token", "Phân quyền người dùng dựa trên vai trò (RBAC)"],
+647:         checkState: [false, false, false, false],
+648:         resources: [{ icon: "📖", type: "doc", title: "Introduction to JSON Web Tokens", meta: "jwt.io", tag: "free" }]
+649:       },
+650:       docker: {
+651:         icon: "🐳", title: "Đóng gói Docker", sub: "Containers, Dockerfile, Docker Compose",
+652:         desc: "Đóng gói toàn bộ ứng dụng và môi trường chạy vào bên trong Container nhằm triệt tiêu lỗi cục bộ khi triển khai máy chủ.",
+653:         status: "todo", pct: 0, cvMatch: false,
+654:         checklist: ["Viết file cấu hình Dockerfile tối ưu", "Quản lý đa dịch vụ qua Docker Compose", "Tạo ổ đĩa lưu trữ Volume & thiết lập Network"],
+655:         checkState: [false, false, false],
+656:         resources: [{ icon: "🎬", type: "free", title: "Docker Containerization Crash Course", meta: "TechWorld with Nana", tag: "free" }]
+657:       },
+658:       redis: {
+659:         icon: "⚡", title: "Redis Caching", sub: "In-memory store, Cache patterns, TTL",
+660:         desc: "Tăng cường năng lực xử lý chịu tải hệ thống gấp 10 lần nhờ giải pháp bộ nhớ đệm In-memory siêu tốc Redis.",
+661:         status: "todo", pct: 0, cvMatch: false,
+662:         checklist: ["Ứng dụng cấu hình Cache-aside pattern", "Thiết lập thời gian hủy bộ đệm (TTL)", "Sử dụng Redis lưu trữ dữ liệu tạm thời"],
+663:         checkState: [false, false, false],
+664:         resources: [{ icon: "🎬", type: "free", title: "Redis Crash Course", meta: "Amigoscode", tag: "free" }]
+665:       }
+666:     }
+667:   };
+668: }
+The above content shows the entire, complete file contents of the requested file.

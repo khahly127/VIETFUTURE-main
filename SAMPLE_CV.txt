@@ -1,0 +1,76 @@
+═══════════════════════════════════════════════════════════════
+                    SAMPLE CV FOR TESTING
+═══════════════════════════════════════════════════════════════
+
+THÔNG TIN CÁ NHÂN
+═══════════════════════════════════════════════════════════════
+Họ tên: Nguyễn Văn A
+Email: nguyenvana@email.com
+Điện thoại: 0123456789
+Vị trí mục tiêu: Backend Developer / Senior Backend Engineer
+
+KỸ NĂNG CHÍNH
+═══════════════════════════════════════════════════════════════
+• Backend: Node.js, Express, Python, Django, FastAPI
+• Database: MongoDB, MySQL, PostgreSQL, Redis
+• DevOps: Docker, Docker Compose, AWS
+• Tools: Git, GitHub, GitLab, Jenkins
+• API: REST API, GraphQL, Socket.io
+• Other: JavaScript, TypeScript, Linux
+
+KINH NGHIỆM LÀNG VIỆC
+═══════════════════════════════════════════════════════════════
+
+Senior Backend Developer | 2020 - Hiện tại | Tech Startup ABC
+- Thiết kế và phát triển các microservices sử dụng Node.js và Express
+- Quản lý database MongoDB và PostgreSQL có 50 triệu records
+- Deploy ứng dụng lên AWS EC2 và sử dụng Docker
+- Mentoring 5 junior developers
+- Cải thiện performance API từ 500ms xuống 50ms
+
+Backend Developer | 2018 - 2020 | Digital Agency XYZ
+- Phát triển REST API cho 10+ projects
+- Tích hợp payment gateway Stripe, Paypal
+- Cơ sở dữ liệu MySQL và Redis caching
+- Test coverage > 80% với Jest và Mocha
+
+Junior Backend Developer | 2017 - 2018 | Freelance
+- Phát triển backend cho web applications
+- Sử dụng Node.js và Express
+- Database: MongoDB, MySQL
+
+HỌC VẤN
+═══════════════════════════════════════════════════════════════
+Đại học Bách Khoa Hà Nội
+- Ngành: Công nghệ Thông tin
+- Tốt nghiệp: 2017 (GPA: 3.5/4.0)
+
+DỰ ÁN TIÊU BIỂU
+═══════════════════════════════════════════════════════════════
+1. E-commerce Platform
+   - Architecture: Microservices
+   - Tech Stack: Node.js, Express, MongoDB, Docker, AWS
+   - Team size: 8 developers
+   - Role: Senior Backend Developer, Tech Lead
+
+2. Real-time Chat Application
+   - Features: Socket.io, Redis, GraphQL
+   - Database: PostgreSQL
+   - Concurrent users: 50,000+
+
+3. Admin Dashboard API
+   - Built with FastAPI (Python)
+   - Elasticsearch for logging
+   - Redis for caching
+
+CHỨNG CHỈ
+═══════════════════════════════════════════════════════════════
+- AWS Certified Solutions Architect (2021)
+- Docker Certified Associate (2020)
+
+NGÔN NGỮ
+═══════════════════════════════════════════════════════════════
+- Tiếng Việt: Native
+- Tiếng Anh: Fluent (TOEIC 900)
+
+═══════════════════════════════════════════════════════════════
