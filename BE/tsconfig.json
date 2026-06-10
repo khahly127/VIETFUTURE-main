@@ -29,5 +29,8 @@
     "node_modules",
     "dist",
     "prisma.config.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
   ]
 }

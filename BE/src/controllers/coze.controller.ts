@@ -6,6 +6,35 @@ import {
     askQuestionAboutCV
 } from "../services/coze.service";
 
+const getValidUserId = (userId: unknown): number | null => {
+    const parsed = Number(userId);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+const saveChatHistory = async (
+    userId: unknown,
+    question: string,
+    answer: string
+) => {
+    const validUserId = getValidUserId(userId);
+
+    if (!validUserId) {
+        return;
+    }
+
+    try {
+        await prisma.aIChatHistory.create({
+            data: {
+                user_id: validUserId,
+                question,
+                answer
+            }
+        });
+    } catch (error: any) {
+        console.warn("Save chat history failed:", error.message);
+    }
+};
+
 // General chat with Coze
 export const cozeChat = async (req: Request, res: Response) => {
     try {
@@ -19,16 +48,7 @@ export const cozeChat = async (req: Request, res: Response) => {
 
         const answer = await generalChat(message);
 
-        // Save to chat history if user_id provided
-        if (user_id) {
-            await prisma.aIChatHistory.create({
-                data: {
-                    user_id,
-                    question: message,
-                    answer
-                }
-            });
-        }
+        await saveChatHistory(user_id, message, answer);
 
         return res.status(200).json({
             message: "Chat success",
@@ -59,16 +79,7 @@ export const analyzeCVController = async (req: Request, res: Response) => {
 
         const analysis = await analyzeCV(cvContent);
 
-        // Save analysis to chat history
-        if (user_id) {
-            await prisma.aIChatHistory.create({
-                data: {
-                    user_id,
-                    question: "CV Analysis",
-                    answer: analysis
-                }
-            });
-        }
+        await saveChatHistory(user_id, "CV Analysis", analysis);
 
         return res.status(200).json({
             message: "CV analysis success",
@@ -98,16 +109,7 @@ export const askAboutCV = async (req: Request, res: Response) => {
 
         const answer = await askQuestionAboutCV(cvContent, question);
 
-        // Save to chat history
-        if (user_id) {
-            await prisma.aIChatHistory.create({
-                data: {
-                    user_id,
-                    question: `CV Question: ${question}`,
-                    answer
-                }
-            });
-        }
+        await saveChatHistory(user_id, `CV Question: ${question}`, answer);
 
         return res.status(200).json({
             message: "Question answered",

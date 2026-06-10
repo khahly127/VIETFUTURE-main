@@ -94,8 +94,7 @@ export const getAssessmentForRole = async (
     let assessment = await prisma.assessment.findFirst({
       where: {
         title: {
-          contains: normalizedRole,
-          mode: "insensitive"
+          contains: normalizedRole
         }
       },
       include: {
@@ -124,11 +123,14 @@ export const getAssessmentForRole = async (
       throw new Error("No assessment found in database");
     }
 
+    // Cast to include questions
+    const assessmentWithQuestions = assessment as any;
+
     return {
       assessment_id: assessment.assessment_id,
       title: assessment.title,
-      total_questions: assessment.total_questions || assessment.questions.length,
-      questions: assessment.questions
+      total_questions: assessment.total_questions || assessmentWithQuestions.questions?.length || 0,
+      questions: assessmentWithQuestions.questions || []
     };
   } catch (error: any) {
     console.error("Get assessment error:", error.message);
