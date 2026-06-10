@@ -38,7 +38,7 @@ export const ChatBot = ({ userId }) => {
       try {
         const content = event.target.result;
         setCvContent(content);
-        
+
         setMessages((prev) => [
           ...prev,
           {
@@ -49,8 +49,9 @@ export const ChatBot = ({ userId }) => {
 
         // Gọi API phân tích CV và xem năng lực
         if (userId) {
-          const result = await cozeApi.analyzeCVAndGetCapability(content, userId);
-          
+          try {
+            const result = await cozeApi.analyzeCVAndGetCapability(content, userId);
+
           setMessages((prev) => [
             ...prev,
             {
@@ -60,8 +61,21 @@ export const ChatBot = ({ userId }) => {
             }
           ]);
 
-          setCapabilityReport(result.capability_report);
+            setCapabilityReport(result.capability_report);
+            return;
+          } catch (capabilityError) {
+            console.warn("Capability analysis failed, falling back to CV analysis:", capabilityError);
+          }
         }
+
+        const result = await cozeApi.analyzeCV(content, userId);
+        setMessages((prev) => [
+          ...prev,
+          {
+            type: "bot",
+            content: result.analysis || "Đã nhận CV, nhưng chưa có nội dung phân tích."
+          }
+        ]);
       } catch (error) {
         console.error("Error analyzing CV:", error);
         setMessages((prev) => [

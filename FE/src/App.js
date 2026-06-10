@@ -22,7 +22,6 @@ import SkillGap from "./components/Assessment/SkillGap";
 import Courses from "./components/Roadmap/Courses";
 import ProgressTracking from "./components/Roadmap/ProgressTracking";
 import AIConsultant from "./components/AI/AIConsultant";
-import FloatingAIChat from "./components/AI/FloatingAIChat";
 import ChatBot from "./components/ChatBot";
 import Admin from "./components/Admin/Admin";
 import EmployerDashboard from "./components/Employer/EmployerDashboard";
@@ -171,7 +170,8 @@ function EmployerRoute({ children }) {
 
 function App() {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  
+  const userId = user?.user_id || user?.id;
+
   return (
     <Router>
       <Routes>
@@ -279,8 +279,7 @@ function App() {
           }
         />
       </Routes>
-      <FloatingAIChat />
-      <ChatBot userId={user?.id} />
+      <ChatBot userId={userId} />
     </Router>
   );
 }
