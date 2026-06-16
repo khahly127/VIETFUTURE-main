@@ -1,21 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, X, Upload } from "lucide-react";
+import { MessageCircle, Send, X, Sparkles } from "lucide-react";
 import { cozeApi } from "../api/cozeApi";
-import CapabilityReport from "./CapabilityReport";
 
 export const ChatBot = ({ userId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       type: "bot",
-      content: "Xin chào! 👋 Tôi là AI tư vấn nghề nghiệp CNTT. Tôi có thể giúp bạn:\n• Phân tích CV & đánh giá năng lực\n• Trả lời câu hỏi về CV\n• Tư vấn về sự nghiệp\n\nBạn có muốn tải lên CV không?"
+      content: "Xin chào! 👋 Tôi là DevPath AI Mentor. Hỏi tôi bất cứ điều gì về công nghệ, sự nghiệp, hay kỹ năng lập trình!"
     }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [cvContent, setCvContent] = useState("");
-  const [cvFile, setCvFile] = useState(null);
-  const [capabilityReport, setCapabilityReport] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -24,73 +20,7 @@ export const ChatBot = ({ userId }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, capabilityReport]);
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setCvFile(file);
-    setLoading(true);
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const content = event.target.result;
-        setCvContent(content);
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "bot",
-            content: `✅ CV đã tải lên thành công! (${file.name})\n\n⏳ Đang phân tích CV của bạn...`
-          }
-        ]);
-
-        // Gọi API phân tích CV và xem năng lực
-        if (userId) {
-          try {
-            const result = await cozeApi.analyzeCVAndGetCapability(content, userId);
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              type: "bot",
-              content: "✨ Phân tích hoàn tất! Dưới đây là đánh giá năng lực của bạn:",
-              report: result.capability_report
-            }
-          ]);
-
-            setCapabilityReport(result.capability_report);
-            return;
-          } catch (capabilityError) {
-            console.warn("Capability analysis failed, falling back to CV analysis:", capabilityError);
-          }
-        }
-
-        const result = await cozeApi.analyzeCV(content, userId);
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "bot",
-            content: result.analysis || "Đã nhận CV, nhưng chưa có nội dung phân tích."
-          }
-        ]);
-      } catch (error) {
-        console.error("Error analyzing CV:", error);
-        setMessages((prev) => [
-          ...prev,
-          {
-            type: "bot",
-            content: "❌ Có lỗi xảy ra khi phân tích CV. Vui lòng thử lại!"
-          }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    reader.readAsText(file);
-  };
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -101,40 +31,14 @@ export const ChatBot = ({ userId }) => {
     setLoading(true);
 
     try {
-      let response;
-
-      // Check if user wants to analyze CV
-      if (userMessage.toLowerCase().includes("phân tích cv") || userMessage.toLowerCase().includes("analyze cv")) {
-        if (!cvContent) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              type: "bot",
-              content: "❌ Vui lòng tải lên CV trước khi yêu cầu phân tích!"
-            }
-          ]);
-          setLoading(false);
-          return;
-        }
-        const result = await cozeApi.analyzeCV(cvContent, userId);
-        response = result.analysis;
-      }
-      // Ask question about CV
-      else if (cvContent && userMessage.length > 10) {
-        const result = await cozeApi.askAboutCV(cvContent, userMessage, userId);
-        response = result.answer;
-      }
-      // General chat
-      else {
-        const result = await cozeApi.chat(userMessage, userId);
-        response = result.answer;
-      }
+      const result = await cozeApi.chat(userMessage, userId);
+      const response = result.answer || "Không có phản hồi từ AI";
 
       setMessages((prev) => [
         ...prev,
         {
           type: "bot",
-          content: response || "Không có phản hồi từ AI"
+          content: response
         }
       ]);
     } catch (error) {
@@ -162,61 +66,66 @@ export const ChatBot = ({ userId }) => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all z-40"
+        className="fixed bottom-8 right-8 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-2xl transition-all z-40 transform hover:scale-110"
         aria-label="Open chatbot"
+        title="Chat với AI"
       >
-        <MessageCircle size={24} />
+        <MessageCircle size={28} />
       </button>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 h-screen md:h-[700px] bg-white rounded-lg shadow-2xl flex flex-col z-50 overflow-hidden">
+    <div className="fixed bottom-8 right-8 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden border border-gray-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex items-center justify-between">
-        <div>
-          <h3 className="font-bold text-lg">VietFuture AI</h3>
-          <p className="text-sm text-blue-100">Tư vấn nghề nghiệp CNTT</p>
+      <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 text-white px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-white bg-opacity-20 p-2 rounded-lg backdrop-blur-sm">
+            <Sparkles size={20} />
+          </div>
+          <div>
+            <h3 className="font-bold text-lg">DevPath AI Mentor</h3>
+            <p className="text-xs text-blue-100 font-medium">Trợ lý tư vấn sự nghiệp</p>
+          </div>
         </div>
         <button
           onClick={() => setIsOpen(false)}
-          className="hover:bg-blue-800 p-1 rounded transition-colors"
+          className="hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-all transform hover:rotate-90"
         >
           <X size={20} />
         </button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50 to-gray-100">
         {messages.map((msg, idx) => (
-          <div key={idx}>
+          <div key={idx} className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}>
             {msg.type === "user" ? (
-              <div className="flex justify-end">
-                <div className="max-w-xs p-3 rounded-lg bg-blue-600 text-white rounded-br-none">
-                  <p className="text-sm whitespace-pre-wrap break-words">
+              <div className="max-w-xs">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-2xl rounded-tr-none shadow-md">
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                     {msg.content}
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="flex justify-start flex-col">
-                <div className="max-w-xs p-3 rounded-lg bg-white text-gray-800 border border-gray-200 rounded-bl-none">
-                  <p className="text-sm whitespace-pre-wrap break-words">
+              <div className="max-w-xs">
+                <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-none shadow-md border border-gray-200">
+                  <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
                     {msg.content}
                   </p>
                 </div>
-                {msg.report && <CapabilityReport report={msg.report} />}
               </div>
             )}
           </div>
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white text-gray-800 border border-gray-200 p-3 rounded-lg rounded-bl-none">
+            <div className="bg-white border border-gray-200 p-3 rounded-2xl rounded-tl-none shadow-md">
               <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
               </div>
             </div>
           </div>
@@ -224,38 +133,24 @@ export const ChatBot = ({ userId }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* CV Upload */}
-      {!cvContent && (
-        <div className="px-4 py-2 border-t border-gray-200">
-          <label className="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 p-2 rounded cursor-pointer transition-colors">
-            <Upload size={16} className="text-gray-600" />
-            <span className="text-sm text-gray-600">Tải CV (TXT)</span>
-            <input
-              type="file"
-              accept=".txt,.pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
-        </div>
-      )}
-
       {/* Input */}
-      <div className="border-t border-gray-200 p-4 bg-white flex gap-2">
+      <div className="border-t border-gray-200 p-4 bg-white flex gap-2 items-end">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Nhập câu hỏi..."
-          className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 resize-none"
-          rows="2"
+          className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none bg-gray-50"
+          rows="1"
           disabled={loading}
+          maxLength={500}
         />
         <button
           onClick={handleSendMessage}
           disabled={loading || !input.trim()}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white p-2 rounded transition-colors"
+          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-400 text-white p-2.5 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-md"
           aria-label="Send message"
+          title="Gửi (Enter)"
         >
           <Send size={18} />
         </button>

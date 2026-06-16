@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import getDemoDataForRole from "../../utils/getDemoData_clean.js";
 
 export default function Roadmap2() {
   const navigate = useNavigate();
@@ -305,11 +306,10 @@ export default function Roadmap2() {
                     <div
                       key={nid}
                       onClick={() => openNode(nid)}
-                      className={`flex items-center gap-2.5 px-4 py-2 text-sm cursor-pointer transition-colors border-l-2 ${
-                        isActive
+                      className={`flex items-center gap-2.5 px-4 py-2 text-sm cursor-pointer transition-colors border-l-2 ${isActive
                           ? "bg-[#111c2e]/60 border-[#00e5ff] text-white font-medium"
                           : "border-transparent text-slate-400 hover:bg-[#111c2e]/30 hover:text-white"
-                      }`}
+                        }`}
                     >
                       <div
                         className={`w-2 h-2 rounded-full shrink-0 ${dotColor}`}
@@ -517,13 +517,12 @@ export default function Roadmap2() {
               <div className="text-2xl mb-2">{activeNode.icon}</div>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span
-                  className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                    activeNode.status === "done"
+                  className={`inline-block text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${activeNode.status === "done"
                       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                       : activeNode.status === "in-progress"
                         ? "bg-[#00e5ff]/10 text-[#00e5ff] border-[#00e5ff]/30"
                         : "bg-slate-800 text-slate-400 border-slate-700"
-                  }`}
+                    }`}
                 >
                   {activeNode.status === "done"
                     ? "✅ Đã xong"
@@ -582,11 +581,10 @@ export default function Roadmap2() {
                     return (
                       <label
                         key={idx}
-                        className={`flex items-start gap-2.5 text-xs p-2.5 rounded-lg border cursor-pointer select-none transition-colors ${
-                          isChecked
+                        className={`flex items-start gap-2.5 text-xs p-2.5 rounded-lg border cursor-pointer select-none transition-colors ${isChecked
                             ? "bg-[#111c2e]/40 border-[#111c2e] text-slate-500 line-through"
                             : "bg-[#090d16] border-[#1e293b] text-slate-300 hover:border-slate-500"
-                        }`}
+                          }`}
                       >
                         <input
                           type="checkbox"
@@ -643,11 +641,10 @@ export default function Roadmap2() {
               <button
                 disabled={activeNode.status === "done"}
                 onClick={() => toggleDoneDirectly(currentNodeId)}
-                className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all ${
-                  activeNode.status === "done"
+                className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all ${activeNode.status === "done"
                     ? "bg-emerald-500 text-white cursor-default"
                     : "bg-gradient-to-r from-blue-500 to-[#00e5ff] hover:from-blue-600 hover:to-[#00d0f0] text-slate-950"
-                }`}
+                  }`}
               >
                 {activeNode.status === "done"
                   ? "✓ Kỹ Năng Đã Hoàn Thành"
@@ -722,230 +719,5 @@ function generateFullDataFromSimple(role, missingSkills, hasCV) {
   return base;
 }
 
-// ── HÀM BỔ TRỢ 2: DEMO DATA THEO VAI TRÒ ──
-function getDemoDataForRole(roleName) {
-  const mockResources = [
-    {
-      icon: "📖",
-      type: "doc",
-      title: "Tài liệu học tập chính thức",
-      meta: "devdocs.io",
-      tag: "free",
-    },
-    {
-      icon: "🎬",
-      type: "video",
-      title: "Khóa học video hướng dẫn chi tiết",
-      meta: "FreeCodeCamp",
-      tag: "free",
-    },
-  ];
 
-  return {
-    username: "Học Viên DevPath",
-    role: roleName || "Backend Engineer",
-    roleEmoji: roleName?.toLowerCase().includes("frontend") ? "💻" : 
-               roleName?.toLowerCase().includes("fullstack") ? "⚡" : 
-               roleName?.toLowerCase().includes("data") ? "🧠" : 
-               roleName?.toLowerCase().includes("mobile") ? "📱" : 
-               roleName?.toLowerCase().includes("devops") ? "⚙️" : 
-               roleName?.toLowerCase().includes("security") ? "🛡️" : 
-               roleName?.toLowerCase().includes("ui") ? "🎨" : "⚙️",
-    roleMeta: "10 kỹ năng cốt lõi · Lộ trình 3–6 tháng",
-    score: 70,
-    phases: [
-      { label: "Nền tảng IT", cls: "p1" },
-      { label: "Ngôn ngữ & API", cls: "p2" },
-      { label: "Cơ sở dữ liệu", cls: "p3" },
-      { label: "Hạ tầng Cloud", cls: "p4" },
-    ],
-    cols: [
-      ["internet", "linux", "git"],
-      ["_", "nodejs", "restapi", "_"],
-      ["_", "sql", "nosql", "_"],
-      ["auth", "docker", "redis"],
-    ],
-    connections: [
-      ["internet", "nodejs"],
-      ["linux", "nodejs"],
-      ["git", "nodejs"],
-      ["linux", "restapi"],
-      ["git", "restapi"],
-      ["nodejs", "sql"],
-      ["nodejs", "nosql"],
-      ["restapi", "sql"],
-      ["restapi", "nosql"],
-      ["sql", "auth"],
-      ["nosql", "auth"],
-      ["sql", "docker"],
-      ["nosql", "redis"],
-      ["auth", "docker"],
-      ["auth", "redis"],
-    ],
-    nodes: {
-      internet: {
-        icon: "🌐",
-        title: "Internet & HTTP",
-        sub: "DNS, TCP/IP, HTTP Methods, Status codes",
-        desc: "Thấu hiểu nguyên lý vận hành của Internet toàn cầu và cấu trúc giao thức HTTP làm tiền đề giao tiếp Client-Server.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "HTTP methods: GET, POST, PUT, DELETE",
-          "Status codes (2xx, 3xx, 4xx, 5xx)",
-          "Hệ thống phân giải tên miền DNS",
-          "Headers, Cookies và Session quản trị",
-        ],
-        checkState: [false, false, false, false],
-        resources: mockResources,
-      },
-      linux: {
-        icon: "🐧",
-        title: "Linux Terminal",
-        sub: "Terminal commands, File system, Permissions",
-        desc: "Thành thạo kỹ năng thao tác trên dòng lệnh Terminal Linux, quản trị thư mục và phân quyền máy chủ VPS.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Điều hướng thư mục Linux nâng cao",
-          "Quản trị quyền tệp tin: Chmod & Chown",
-          "Quản lý tiến trình (Process Management)",
-          "Cấu hình SSH kết nối Remote Server",
-        ],
-        checkState: [false, false, false, false],
-        resources: mockResources,
-      },
-      git: {
-        icon: "🔀",
-        title: "Git & GitHub",
-        sub: "Branching, merging, Pull Request flow",
-        desc: "Quản lý phiên bản mã nguồn dự án chặt chẽ với Git, phối hợp nhóm hiệu quả qua GitHub Workflow.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Làm chủ Git add, commit, push, clone",
-          "Phân nhánh Branch & xử lý Merge Conflict",
-          "Tạo và kiểm duyệt Pull Request (PR)",
-        ],
-        checkState: [false, false, false],
-        resources: mockResources,
-      },
-      nodejs: {
-        icon: "🟢",
-        title: "Node.js & Express",
-        sub: "Event loop, Async, Middleware routing",
-        desc: "Xây dựng ứng dụng máy chủ bất đồng bộ hiệu năng cao sử dụng môi trường Node.js và Express.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Event Loop single-thread",
-          "Async/Await & Promises",
-          "Middleware routes Express",
-          "File system FS module",
-        ],
-        checkState: [false, false, false, false],
-        resources: mockResources,
-      },
-      restapi: {
-        icon: "⚡",
-        title: "RESTful API Design",
-        sub: "Endpoints, JSON, Status codes, Validation",
-        desc: "Thiết kế chuẩn mực giao tiếp dữ liệu giữa Client và Server đáp ứng các tiêu chuẩn công nghiệp RESTful.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Quy chuẩn endpoints",
-          "Phân trang, lọc, sắp xếp (Paging, Sorting)",
-          "Sử dụng Zod/Joi validation",
-        ],
-        checkState: [false, false, false],
-        resources: mockResources,
-      },
-      sql: {
-        icon: "💾",
-        title: "Relational DB (SQL)",
-        sub: "PostgreSQL/MySQL, Joins, Indexing",
-        desc: "Làm chủ cơ sở dữ liệu quan hệ, tối ưu câu lệnh truy vấn phức tạp và cấu hình chuẩn hóa sơ đồ thực thể.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Thiết kế bảng & Khóa ngoại",
-          "INNER/LEFT/RIGHT JOIN queries",
-          "Lập chỉ mục Indexing tối ưu",
-        ],
-        checkState: [false, false, false],
-        resources: mockResources,
-      },
-      nosql: {
-        icon: "🍃",
-        title: "NoSQL (MongoDB)",
-        sub: "Documents, Collections, Aggregation",
-        desc: "Lưu trữ dữ liệu dạng phi cấu trúc linh hoạt linh động với MongoDB Document.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Tạo schema động collections",
-          "Query array lồng nhau",
-          "Aggregation Framework query",
-        ],
-        checkState: [false, false, false],
-        resources: mockResources,
-      },
-      auth: {
-        icon: "🔑",
-        title: "Authentication JWT",
-        sub: "Sessions, JWT Tokens, Cookies, RBAC",
-        desc: "Bảo mật hệ thống đầu cuối nghiêm ngặt với giải pháp cấp phát token JWT ký điện tử.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Mã hóa bcrypt password",
-          "Access/Refresh tokens setup",
-          "Phân quyền RBAC",
-        ],
-        checkState: [false, false, false, false],
-        resources: mockResources,
-      },
-      docker: {
-        icon: "🐳",
-        title: "Đóng gói Docker",
-        sub: "Containers, Dockerfile, Docker Compose",
-        desc: "Đóng gói toàn bộ ứng dụng và môi trường chạy vào bên trong Container nhằm triệt tiêu lỗi cục bộ.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Viết file Dockerfile tối ưu",
-          "Docker Compose multi-service",
-          "Docker Volume & Network",
-        ],
-        checkState: [false, false, false],
-        resources: mockResources,
-      },
-      redis: {
-        icon: "⚡",
-        title: "Redis Caching",
-        sub: "In-memory store, Cache patterns, TTL",
-        desc: "Tăng cường năng lực xử lý chịu tải hệ thống gấp 10 lần nhờ giải pháp bộ nhớ đệm In-memory.",
-        status: "todo",
-        pct: 0,
-        cvMatch: false,
-        checklist: [
-          "Cấu hình Cache-aside pattern",
-          "Thiết lập TTL cache",
-          "Sử dụng Redis cache store",
-        ],
-        checkState: [false, false, false],
-        resources: mockResources,
-      },
-    },
-  };
-}
+

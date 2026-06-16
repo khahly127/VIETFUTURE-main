@@ -18,6 +18,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
+import getDemoDataForRole from "../../utils/getDemoData_clean.js";
 
 function AllRoadmaps() {
   const navigate = useNavigate();
@@ -60,13 +61,22 @@ function AllRoadmaps() {
           }
         }
         
+        // Map careers to use actual roadmap data
         setData(
-          uniqueCareers.map((c) => ({
-            title: c.career_name,
-            time: c.demand_level || "6 tháng",
-            skills: parseInt(c.salary_range) || 10,
-            desc: c.description || "",
-          }))
+          uniqueCareers.map((c) => {
+            const roadmapData = getDemoDataForRole(c.career_name);
+            const skillCount = Object.keys(roadmapData.nodes || {}).length;
+            // Extract time from roleMeta (e.g., "10 kỹ năng cốt lõi · Lộ trình 3–6 tháng")
+            const timeMatch = roadmapData.roleMeta?.match(/(\d+[–-]\d+\s*tháng)/);
+            const time = timeMatch ? timeMatch[1] : "6 tháng";
+            
+            return {
+              title: c.career_name,
+              time: time,
+              skills: skillCount,
+              desc: c.description || roadmapData.roleMeta || "",
+            };
+          })
         );
       } catch (err) {
         console.error("Failed to fetch careers", err);
@@ -141,8 +151,8 @@ function AllRoadmaps() {
 
   const handleRoadmapClick = (roleTitle) => {
     const mockData = {
-      role: roleTitle,
-      hasCV: false, // Thêm cờ nhận diện CV
+      role: roleTitle, // Store the actual role title
+      hasCV: false,
       skills: [],
       missing: [
         "internet",
