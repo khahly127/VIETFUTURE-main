@@ -22,6 +22,17 @@ import {
   Star,
 } from "lucide-react";
 import axiosClient from "../../api/axiosClient";
+import {
+  readAnalysisResult,
+  readCvFile,
+  readCvMeta,
+  readSkillGapResult,
+  getSkillLists,
+  clearCvData,
+  formatUploadDate,
+  formatFileSize,
+  buildRoadmapPhases,
+} from "../../utils/profileStorage";
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -31,7 +42,19 @@ export default function UserProfile() {
   const [editForm, setEditForm] = useState({});
   const [avatarHover, setAvatarHover] = useState(false);
   const [isAnimate, setIsAnimate] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [cvMeta, setCvMeta] = useState(null);
+  const [cvFile, setCvFile] = useState(null);
+  const [skillGap, setSkillGap] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const fileInputRef = useRef(null);
+
+  const refreshProfileData = () => {
+    setAnalysisResult(readAnalysisResult());
+    setCvMeta(readCvMeta());
+    setCvFile(readCvFile());
+    setSkillGap(readSkillGapResult());
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -42,24 +65,60 @@ export default function UserProfile() {
     if (stored) {
       const parsed = JSON.parse(stored);
       setUser(parsed);
-      // Map full_name to name field so existing form fields bind correctly
       setEditForm({
         ...parsed,
         name: parsed.full_name || parsed.name || "",
       });
+
+      if (parsed.user_id) {
+        axiosClient
+          .get(`/users/${parsed.user_id}`)
+          .then((freshUser) => {
+            if (!freshUser) return;
+
+            const { password_hash, ...safeUser } = freshUser;
+            const merged = {
+              ...parsed,
+              ...safeUser,
+              name: safeUser.full_name || parsed.full_name || parsed.name || "",
+              joinedDate: safeUser.created_at
+                ? new Date(safeUser.created_at).toLocaleDateString("vi-VN")
+                : parsed.joinedDate,
+            };
+
+            setUser(merged);
+            setEditForm((prev) => ({
+              ...prev,
+              ...merged,
+              name: merged.full_name || merged.name || "",
+            }));
+            localStorage.setItem("user", JSON.stringify(merged));
+          })
+          .catch((error) => {
+            console.error("Không tải được thông tin user:", error);
+          });
+      }
     } else {
       navigate("/login");
     }
+
+    refreshProfileData();
     return () => clearTimeout(timeout);
   }, [navigate]);
 
-  const analysisResult = (() => {
-    try {
-      return JSON.parse(localStorage.getItem("devpath_analysis_result"));
-    } catch {
-      return null;
+  const handleDeleteCV = () => {
+    if (
+      !window.confirm(
+        "Bạn có chắc muốn xóa CV và toàn bộ kết quả phân tích liên quan?"
+      )
+    ) {
+      return;
     }
-  })();
+
+    clearCvData();
+    refreshProfileData();
+    setPreviewOpen(false);
+  };
 
   const handleSaveProfile = async () => {
     try {
@@ -110,7 +169,7 @@ export default function UserProfile() {
     localStorage.removeItem("devpath_user");
     localStorage.removeItem("token");
     window.dispatchEvent(new Event("devpath_auth_change"));
-    navigate("/");
+    navigate("/login");
   };
 
   const getInitials = (name) => {
@@ -267,6 +326,8 @@ export default function UserProfile() {
           {activeTab === "profile" && (
             <ProfileTab
               user={user}
+              analysisResult={analysisResult}
+              skillGap={skillGap}
               isEditing={isEditing}
               editForm={editForm}
               setEditForm={setEditForm}
@@ -275,10 +336,22 @@ export default function UserProfile() {
             />
           )}
           {activeTab === "cv" && (
-            <CVTab analysisResult={analysisResult} navigate={navigate} />
+            <CVTab
+              analysisResult={analysisResult}
+              cvMeta={cvMeta}
+              cvFile={cvFile}
+              previewOpen={previewOpen}
+              setPreviewOpen={setPreviewOpen}
+              onDelete={handleDeleteCV}
+              navigate={navigate}
+            />
           )}
           {activeTab === "roadmap" && (
-            <RoadmapTab analysisResult={analysisResult} navigate={navigate} />
+            <RoadmapTab
+              analysisResult={analysisResult}
+              skillGap={skillGap}
+              navigate={navigate}
+            />
           )}
         </div>
       </div>
@@ -289,6 +362,8 @@ export default function UserProfile() {
 /* ─── PROFILE TAB ─── */
 function ProfileTab({
   user,
+  analysisResult,
+  skillGap,
   isEditing,
   editForm,
   setEditForm,
@@ -409,15 +484,26 @@ function ProfileTab({
             {[
               {
                 label: "Ngày tham gia",
-                value: user.joinedDate || "23/05/2025",
+                value:
+                  user.joinedDate ||
+                  (user.created_at
+                    ? new Date(user.created_at).toLocaleDateString("vi-VN")
+                    : "Chưa rõ"),
                 icon: Clock,
               },
               {
                 label: "Lộ trình đang theo",
-                value: user.role || "Chưa xác định",
+                value:
+                  analysisResult?.role ||
+                  analysisResult?.originalRoleName ||
+                  "Chưa xác định",
                 icon: Target,
               },
-              { label: "Tiến độ học", value: "32%", icon: TrendingUp },
+              {
+                label: "Tiến độ học",
+                value: `${analysisResult?.assessmentPercent ?? skillGap?.matchPercentage ?? 0}%`,
+                icon: TrendingUp,
+              },
             ].map(({ label, value, icon: Icon }) => (
               <div
                 key={label}
@@ -445,7 +531,12 @@ function ProfileTab({
           <p className="text-xs text-[#6b7a95] mb-3">
             Mở khoá AI mentor cá nhân và theo dõi tiến độ nâng cao.
           </p>
-          <button className="w-full py-2 rounded-lg bg-[#00e5ff]/15 border border-[#00e5ff]/30 text-[#00e5ff] text-xs font-bold hover:bg-[#00e5ff]/20 transition-all">
+          <button
+            onClick={() =>
+              alert("Tính năng DevPath Pro đang được phát triển.")
+            }
+            className="w-full py-2 rounded-lg bg-[#00e5ff]/15 border border-[#00e5ff]/30 text-[#00e5ff] text-xs font-bold hover:bg-[#00e5ff]/20 transition-all"
+          >
             Khám phá Pro →
           </button>
         </div>
@@ -455,14 +546,51 @@ function ProfileTab({
 }
 
 /* ─── CV TAB ─── */
-function CVTab({ analysisResult, navigate }) {
-  const hasCV = !!analysisResult;
+function CVTab({
+  analysisResult,
+  cvMeta,
+  cvFile,
+  previewOpen,
+  setPreviewOpen,
+  onDelete,
+  navigate,
+}) {
+  const hasCV = !!analysisResult?.hasCV || !!cvMeta || !!cvFile;
+  const { skills, missing } = getSkillLists(analysisResult);
+  const displayName = cvMeta?.fileName || cvFile?.fileName || "resume_cv.pdf";
+  const displaySize = formatFileSize(cvMeta?.fileSize || cvFile?.fileSize) || "~1.2 MB";
+  const displayType = (cvMeta?.fileType || cvFile?.fileType || "application/pdf")
+    .includes("pdf")
+    ? "PDF"
+    : "DOCX";
+  const uploadedAt = formatUploadDate(cvMeta?.uploadedAt || cvFile?.uploadedAt);
+
+  const handleDownload = () => {
+    if (!cvFile?.dataUrl) {
+      alert("Không tìm thấy file CV đã lưu. Vui lòng upload lại CV.");
+      return;
+    }
+
+    const link = document.createElement("a");
+    link.href = cvFile.dataUrl;
+    link.download = cvFile.fileName || displayName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleView = () => {
+    if (!cvFile?.dataUrl) {
+      alert("Không tìm thấy file CV đã lưu. Vui lòng upload lại CV.");
+      return;
+    }
+    setPreviewOpen(true);
+  };
 
   return (
     <div className="space-y-5">
       {hasCV ? (
         <>
-          {/* CV Card */}
           <div className="rounded-2xl border border-white/8 bg-[#0d1527]/80 p-6">
             <div className="flex items-start justify-between mb-5">
               <h2 className="text-base font-bold flex items-center gap-2">
@@ -480,29 +608,35 @@ function CVTab({ analysisResult, navigate }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-sm text-white truncate">
-                  resume_cv.pdf
+                  {displayName}
                 </div>
                 <div className="text-xs text-[#6b7a95] mt-0.5">
-                  PDF • ~1.2 MB • Upload lúc 14:30
+                  {displayType} • {displaySize} • Upload lúc {uploadedAt}
                 </div>
                 <div className="text-xs text-[#00e5ff] mt-1 font-medium">
-                  Vị trí: {analysisResult.role}
+                  Vị trí: {analysisResult?.role || cvMeta?.role || "Chưa xác định"}
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
                 <button
+                  type="button"
+                  onClick={handleView}
                   className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-[#6b7a95] hover:text-white transition-all"
                   title="Xem"
                 >
                   <Eye size={15} />
                 </button>
                 <button
+                  type="button"
+                  onClick={handleDownload}
                   className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-[#6b7a95] hover:text-white transition-all"
                   title="Tải về"
                 >
                   <Download size={15} />
                 </button>
                 <button
+                  type="button"
+                  onClick={onDelete}
                   className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all"
                   title="Xoá"
                 >
@@ -511,21 +645,26 @@ function CVTab({ analysisResult, navigate }) {
               </div>
             </div>
 
-            {/* Analysis Results */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-[#0f192e] rounded-xl p-4 border border-white/5">
                 <h4 className="text-xs font-bold text-[#00e5ff] uppercase tracking-wider mb-3 flex items-center gap-1.5">
                   <CheckCircle size={11} /> Kỹ năng đã có
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {analysisResult.skills?.map((skill) => (
-                    <span
-                      key={skill}
-                      className="bg-green-500/10 border border-green-500/20 text-green-400 text-[11px] font-medium px-2.5 py-1 rounded-lg"
-                    >
-                      {skill}
+                  {skills.length > 0 ? (
+                    skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="bg-green-500/10 border border-green-500/20 text-green-400 text-[11px] font-medium px-2.5 py-1 rounded-lg"
+                      >
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-[#6b7a95]">
+                      Hoàn thành bài đánh giá để xem kỹ năng đã có.
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -534,20 +673,27 @@ function CVTab({ analysisResult, navigate }) {
                   <Target size={11} /> Kỹ năng cần học
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {analysisResult.missing?.map((skill) => (
-                    <span
-                      key={skill}
-                      className="bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[11px] font-medium px-2.5 py-1 rounded-lg"
-                    >
-                      {skill}
+                  {missing.length > 0 ? (
+                    missing.map((skill) => (
+                      <span
+                        key={skill}
+                        className="bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[11px] font-medium px-2.5 py-1 rounded-lg"
+                      >
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-[#6b7a95]">
+                      Chưa có dữ liệu kỹ năng cần học.
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={() => navigate("/upload")}
             className="flex items-center gap-2 text-sm text-[#6b7a95] hover:text-[#00e5ff] transition-colors"
           >
@@ -566,6 +712,7 @@ function CVTab({ analysisResult, navigate }) {
             nhân hoá.
           </p>
           <button
+            type="button"
             onClick={() => navigate("/upload")}
             className="inline-flex items-center gap-2 bg-[#00e5ff] text-[#070b14] px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#00b2cc] transition-all shadow-[0_0_20px_rgba(0,229,255,0.2)]"
           >
@@ -573,40 +720,54 @@ function CVTab({ analysisResult, navigate }) {
           </button>
         </div>
       )}
+
+      {previewOpen && cvFile?.dataUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="w-full max-w-4xl h-[85vh] rounded-2xl border border-white/10 bg-[#0d1527] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <div className="text-sm font-semibold truncate">{displayName}</div>
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(false)}
+                className="text-sm text-[#6b7a95] hover:text-white"
+              >
+                Đóng
+              </button>
+            </div>
+            <div className="flex-1 bg-[#050a14]">
+              {cvFile.fileType?.includes("pdf") ? (
+                <iframe
+                  title="CV Preview"
+                  src={cvFile.dataUrl}
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center gap-3 text-center p-6">
+                  <FileText size={40} className="text-[#00e5ff]" />
+                  <p className="text-sm text-[#6b7a95]">
+                    Không thể xem trước file DOC/DOCX trực tiếp trên trình duyệt.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    className="px-4 py-2 rounded-lg bg-[#00e5ff] text-[#070b14] text-sm font-bold"
+                  >
+                    Tải file về
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ─── ROADMAP TAB ─── */
-function RoadmapTab({ analysisResult, navigate }) {
-  const hasRoadmap = !!analysisResult;
-
-  const phases = [
-    {
-      phase: "Giai đoạn 1",
-      title: "Nền tảng",
-      duration: "4-6 tuần",
-      skills: ["HTML & CSS", "JavaScript cơ bản", "Git & GitHub"],
-      status: "completed",
-      progress: 100,
-    },
-    {
-      phase: "Giai đoạn 2",
-      title: "Framework & Thư viện",
-      duration: "6-8 tuần",
-      skills: ["React.js & Hooks", "TypeScript", "Tailwind CSS"],
-      status: "in-progress",
-      progress: 45,
-    },
-    {
-      phase: "Giai đoạn 3",
-      title: "Nâng cao & Deploy",
-      duration: "4-6 tuần",
-      skills: ["State Management", "API Integration", "CI/CD & Deploy"],
-      status: "locked",
-      progress: 0,
-    },
-  ];
+function RoadmapTab({ analysisResult, skillGap, navigate }) {
+  const hasRoadmap = !!analysisResult?.hasCV || !!analysisResult?.role;
+  const { progress, phases } = buildRoadmapPhases(analysisResult, skillGap);
 
   if (!hasRoadmap) {
     return (
@@ -655,19 +816,19 @@ function RoadmapTab({ analysisResult, navigate }) {
         <div className="mb-6">
           <div className="flex justify-between text-xs mb-2">
             <span className="text-[#6b7a95]">Tiến độ tổng thể</span>
-            <span className="font-bold text-[#00e5ff]">32%</span>
+            <span className="font-bold text-[#00e5ff]">{progress}%</span>
           </div>
           <div className="h-2 bg-white/5 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-[#00e5ff] to-[#7c3aed] rounded-full transition-all duration-1000"
-              style={{ width: "32%" }}
+              style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        {/* Phase Cards */}
         <div className="space-y-3">
-          {phases.map((p, i) => (
+          {phases.length > 0 ? (
+            phases.map((p, i) => (
             <div
               key={i}
               className={`rounded-xl border p-4 transition-all ${
@@ -744,7 +905,12 @@ function RoadmapTab({ analysisResult, navigate }) {
                 ))}
               </div>
             </div>
-          ))}
+            ))
+          ) : (
+            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-[#6b7a95]">
+              Chưa có dữ liệu giai đoạn học. Hãy hoàn thành bài đánh giá để AI tạo lộ trình chi tiết hơn.
+            </div>
+          )}
         </div>
       </div>
 

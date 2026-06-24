@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 // 🛠️ IMPORT: Điều hướng trang trong React Router
 import { useNavigate } from "react-router-dom";
 import { UploadCloud, FileText, X, CheckCircle2, BrainCircuit } from "lucide-react";
+import { saveCvFile } from "../../utils/profileStorage";
 
 function UploadCV({ onClose }) {
   // 🛠️ KHỞI TẠO: Hook điều hướng điều hướng
@@ -11,6 +12,7 @@ function UploadCV({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [fileName, setFileName] = useState("");
   const [fileSize, setFileSize] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [currentStep, setCurrentStep] = useState(1); // 1: Chọn vị trí/CV, 2: AI đang đọc, 3: Đánh giá
@@ -83,6 +85,7 @@ function UploadCV({ onClose }) {
 
     setFileName(file.name);
     setFileSize(formatFileSize(file.size));
+    setSelectedFile(file);
   };
 
   const handleFileChange = (e) => {
@@ -101,17 +104,27 @@ function UploadCV({ onClose }) {
     e.stopPropagation();
     setFileName("");
     setFileSize("");
+    setSelectedFile(null);
     if (fileRef.current) fileRef.current.value = "";
   };
 
   // --- 🛠️ HÀM KÍCH HOẠT XỬ LÝ AI & CHUYỂN TIẾP SANG LUỒNG ĐÁNH GIÁ ---
-  const handleStartAnalysis = () => {
-    if (!fileName || !selectedRole) return;
+  const handleStartAnalysis = async () => {
+    if (!fileName || !selectedRole || !selectedFile) return;
 
     setLoading(true);
-    setCurrentStep(2); // Chuyển sang bước 2 trên thanh tiến trình: AI đang quét dữ liệu
+    setCurrentStep(2);
 
-    // Giả lập AI phân tích cú pháp CV mất 2.5 giây
+    try {
+      await saveCvFile(selectedFile);
+    } catch (error) {
+      console.error("Không lưu được file CV:", error);
+      alert("Không thể lưu file CV trên trình duyệt. Hãy thử file nhỏ hơn 4MB.");
+      setLoading(false);
+      setCurrentStep(1);
+      return;
+    }
+
     setTimeout(() => {
       setLoading(false);
 
@@ -201,8 +214,13 @@ function UploadCV({ onClose }) {
         role: standardizedRole,
         originalRoleName: selectedRole,
         skills: selectedData.skills,
+        initialSkills: selectedData.skills,
         missing: selectedData.missing,
-        hasCV: true
+        hasCV: true,
+        fileName,
+        fileSize,
+        fileType: selectedFile.type,
+        uploadedAt: new Date().toISOString()
       };
 
       // 2. Lưu trữ tạm thời vào Local Storage để các trang sau kế thừa dữ liệu

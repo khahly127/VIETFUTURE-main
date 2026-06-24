@@ -4,11 +4,12 @@ const COZE_API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/ap
 
 export const cozeApi = {
   // General chat
-  chat: async (message, userId = null) => {
+  chat: async (message, userId = null, conversationId = null) => {
     try {
       const response = await axios.post(`${COZE_API_BASE}/coze/chat`, {
         message,
-        user_id: userId
+        user_id: userId,
+        conversation_id: conversationId
       });
       return response.data.data;
     } catch (error) {

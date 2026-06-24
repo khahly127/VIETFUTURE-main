@@ -152,13 +152,16 @@ model CourseSkill {
 }
 
 model AIChatHistory {
-  chat_id    Int      @id @default(autoincrement())
-  user_id    Int
-  question   String
-  answer     String
-  created_at DateTime @default(now())
+  chat_id          Int      @id @default(autoincrement())
+  user_id          Int
+  conversation_id  String?
+  question         String   @db.Text
+  answer           String   @db.Text
+  created_at       DateTime @default(now())
 
   user User @relation(fields: [user_id], references: [user_id])
+
+  @@index([conversation_id])
 }
 
 model Question {

@@ -157,6 +157,7 @@ export default function Assessment() {
     
     setTimeout(() => {
       const savedData = JSON.parse(localStorage.getItem("devpath_analysis_result")) || {};
+      const preservedInitialSkills = savedData.initialSkills || savedData.skills || [];
       const totalQuestionsCount = questions.length || 10;
       const scorePercentage = Math.round((finalScore / totalQuestionsCount) * 100);
 
@@ -201,6 +202,7 @@ export default function Assessment() {
       // Cập nhật danh sách kỹ năng chuẩn xác vào devpath_analysis_result để Roadmap2 sử dụng
       savedData.skills = matchedSkills.map(s => s.name);
       savedData.missing = missingSkills.map(s => s.name);
+      savedData.initialSkills = preservedInitialSkills;
       localStorage.setItem("devpath_analysis_result", JSON.stringify(savedData));
 
       // Đóng gói payload phân tích Khoảng cách kỹ năng động

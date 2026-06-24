@@ -21,7 +21,6 @@ import Assessment from "./components/Assessment/Assessment";
 import SkillGap from "./components/Assessment/SkillGap";
 import Courses from "./components/Roadmap/Courses";
 import ProgressTracking from "./components/Roadmap/ProgressTracking";
-import AIConsultant from "./components/AI/AIConsultant";
 import ChatBot from "./components/ChatBot";
 import Admin from "./components/Admin/Admin";
 import EmployerDashboard from "./components/Employer/EmployerDashboard";
@@ -242,14 +241,6 @@ function App() {
           element={
             <PrivateRoute>
               <ProgressTracking />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/ai-consultant"
-          element={
-            <PrivateRoute>
-              <AIConsultant />
             </PrivateRoute>
           }
         />

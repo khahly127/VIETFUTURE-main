@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { prisma } from "../config/prisma";
 import {
     generalChat,
     analyzeCV,
@@ -11,34 +10,10 @@ const getValidUserId = (userId: unknown): number | null => {
     return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
 };
 
-const saveChatHistory = async (
-    userId: unknown,
-    question: string,
-    answer: string
-) => {
-    const validUserId = getValidUserId(userId);
-
-    if (!validUserId) {
-        return;
-    }
-
-    try {
-        await prisma.aIChatHistory.create({
-            data: {
-                user_id: validUserId,
-                question,
-                answer
-            }
-        });
-    } catch (error: any) {
-        console.warn("Save chat history failed:", error.message);
-    }
-};
-
 // General chat with Coze
 export const cozeChat = async (req: Request, res: Response) => {
     try {
-        const { message, user_id } = req.body;
+        const { message, user_id, conversation_id } = req.body;
 
         if (!message) {
             return res.status(400).json({
@@ -46,15 +21,21 @@ export const cozeChat = async (req: Request, res: Response) => {
             });
         }
 
-        const answer = await generalChat(message);
+        const validUserId = getValidUserId(user_id);
+        if (!validUserId) {
+            return res.status(400).json({
+                message: "Valid user_id is required"
+            });
+        }
 
-        await saveChatHistory(user_id, message, answer);
+        const result = await generalChat(message, validUserId, conversation_id);
 
         return res.status(200).json({
             message: "Chat success",
             data: {
                 question: message,
-                answer
+                answer: result.answer,
+                conversation_id: result.conversationId
             }
         });
     } catch (error: any) {
@@ -77,14 +58,24 @@ export const analyzeCVController = async (req: Request, res: Response) => {
             });
         }
 
-        const analysis = await analyzeCV(cvContent);
+        const validUserId = getValidUserId(user_id);
+        if (!validUserId) {
+            return res.status(400).json({
+                message: "Valid user_id is required"
+            });
+        }
 
-        await saveChatHistory(user_id, "CV Analysis", analysis);
+        const result = await analyzeCV(
+            cvContent,
+            validUserId,
+            req.body.conversation_id
+        );
 
         return res.status(200).json({
             message: "CV analysis success",
             data: {
-                analysis
+                analysis: result.answer,
+                conversation_id: result.conversationId
             }
         });
     } catch (error: any) {
@@ -107,15 +98,26 @@ export const askAboutCV = async (req: Request, res: Response) => {
             });
         }
 
-        const answer = await askQuestionAboutCV(cvContent, question);
+        const validUserId = getValidUserId(user_id);
+        if (!validUserId) {
+            return res.status(400).json({
+                message: "Valid user_id is required"
+            });
+        }
 
-        await saveChatHistory(user_id, `CV Question: ${question}`, answer);
+        const result = await askQuestionAboutCV(
+            cvContent,
+            question,
+            validUserId,
+            req.body.conversation_id
+        );
 
         return res.status(200).json({
             message: "Question answered",
             data: {
                 question,
-                answer
+                answer: result.answer,
+                conversation_id: result.conversationId
             }
         });
     } catch (error: any) {

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerService, loginService, googleAuthService } from "../services/auth.service";
+import { registerService, loginService, googleAuthWithCredential } from "../services/auth.service";
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -61,21 +61,32 @@ export const login = async (req: Request, res: Response) => {
 
 export const googleLogin = async (req: Request, res: Response) => {
     try {
-        const { email, name, role } = req.body;
+        const { credential, role } = req.body;
 
-        if (!email || !name) {
+        if (!credential) {
             return res.status(400).json({
-                message: "Email and name are required"
+                message: "Google credential is required"
             });
         }
 
-        const result = await googleAuthService(email, name, role);
+        const result = await googleAuthWithCredential(credential, role);
 
         return res.status(200).json(result);
     } catch (error: any) {
         console.error("Google Login Error:", error);
-        return res.status(500).json({
-            message: "Server error"
+
+        if (
+            error?.message?.includes("Google OAuth is not configured") ||
+            error?.message?.includes("Wrong recipient") ||
+            error?.message?.includes("Invalid token")
+        ) {
+            return res.status(400).json({
+                message: error.message
+            });
+        }
+
+        return res.status(401).json({
+            message: error?.message || "Google authentication failed"
         });
     }
 };

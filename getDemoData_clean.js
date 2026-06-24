@@ -24,91 +24,98 @@ function getDemoDataForRole(roleName) {
       score: 70,
       phases: [
         { label: "Nền tảng HTML & CSS", cls: "p1" },
-        { label: "JavaScript & Async", cls: "p2" },
-        { label: "React Core", cls: "p3" },
-        { label: "Tối ưu & State", cls: "p4" }
+        { label: "JavaScript & Browser", cls: "p2" },
+        { label: "React & Framework", cls: "p3" },
+        { label: "Performance & Tooling", cls: "p4" }
       ],
       cols: [
-        ["semantic", "responsive", "grid"],
-        ["_", "asyncjs", "cors", "_"],
-        ["_", "vdom", "hooks", "_"],
-        ["storage", "state", "optimize"]
+        ["html", "css", "flexbox"],
+        ["_", "es6", "dom", "_"],
+        ["_", "jsx", "hooks", "routing"],
+        ["bundler", "testing", "deploy"]
       ],
       connections: [
-        ["semantic", "asyncjs"], ["responsive", "cors"], ["grid", "cors"],
-        ["asyncjs", "vdom"], ["cors", "vdom"], ["cors", "hooks"],
-        ["vdom", "storage"], ["vdom", "state"], ["hooks", "state"],
-        ["storage", "optimize"], ["state", "optimize"]
+        ["html", "es6"], ["css", "dom"], ["flexbox", "dom"],
+        ["es6", "jsx"], ["dom", "jsx"], ["dom", "hooks"],
+        ["jsx", "routing"], ["hooks", "routing"], ["hooks", "testing"],
+        ["testing", "bundler"], ["routing", "deploy"], ["bundler", "deploy"]
       ],
       nodes: {
-        semantic: {
-          icon: "📄", title: "Semantic HTML & Accessibility", sub: "Thẻ ngữ nghĩa, WCAG, ARIA",
-          desc: "Sử dụng HTML ngữ nghĩa để tối ưu hóa SEO và khả năng tiếp cận người dùng khuyết tật.",
+        html: {
+          icon: "📄", title: "Semantic HTML5 & SEO", sub: "Thẻ ngữ nghĩa, Accessibility",
+          desc: "Xây dựng cấu trúc HTML ngữ nghĩa chuẩn để tối ưu SEO và khả năng tiếp cận cho người khuyết tật.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Sử dụng các thẻ header, nav, section", "Áp dụng thuộc tính alt cho ảnh", "Thiết lập thuộc tính ARIA cơ bản"],
+          checklist: ["Sử dụng các thẻ semantic (header, section, article)", "Cấu hình meta tags cho SEO", "Kiểm soát Accessibility với ARIA labels"],
           checkState: [false, false, false], resources: mockResources
         },
-        responsive: {
-          icon: "📱", title: "CSS Responsive Units", sub: "em, rem, vw, vh, media queries",
-          desc: "Thiết kế giao diện co giãn mượt mà trên mọi kích thước màn hình thiết bị.",
+        css: {
+          icon: "🎨", title: "CSS3 Advanced Styling", sub: "Flexbox, Grid, Animation",
+          desc: "Nắm vững CSS3 để tạo giao diện đẹp mắt, responsive, và có animation mượt mà.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Responsive units (em/rem)", "Cấu hình viewport meta tag", "Media queries cho điện thoại"],
+          checklist: ["Thiết kế CSS Grid 2D layouts", "Sử dụng Flexbox cho alignment", "Tạo animation và transition"],
           checkState: [false, false, false], resources: mockResources
         },
-        grid: {
-          icon: "📐", title: "CSS Grid Layout", sub: "Grid template, areas, gaps",
-          desc: "Thiết kế bố cục lưới hai chiều phức tạp, linh hoạt và tối giản mã nguồn CSS.",
+        flexbox: {
+          icon: "📐", title: "Flexbox Layout Mastery", sub: "Align, justify, direction",
+          desc: "Quản lý bố cục một chiều linh hoạt với Flexbox để tạo trang web responsive.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Grid templates", "Grid gaps", "Grid areas"],
+          checklist: ["Align-items, justify-content control", "Flex direction & wrap", "Flex grow, shrink, basis"],
           checkState: [false, false, false], resources: mockResources
         },
-        asyncjs: {
-          icon: "⏳", title: "Asynchronous JavaScript", sub: "Promises, Async/Await, Event Loop",
-          desc: "Làm chủ cơ chế bất đồng bộ giúp trang web phản hồi nhanh, tránh đơ đục.",
+        es6: {
+          icon: "⚡", title: "ES6+ JavaScript Features", sub: "Arrow functions, Destructuring, Async/Await",
+          desc: "Làm chủ cú pháp JavaScript hiện đại để viết code sạch, ngắn gọn và hiệu quả hơn.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Promises & Chain", "Async/Await", "Event loop mechanics"],
+          checklist: ["Const/Let + arrow functions", "Destructuring & spread operator", "Promises & Async/Await"],
           checkState: [false, false, false], resources: mockResources
         },
-        cors: {
-          icon: "🛡️", title: "CORS Security Policy", sub: "Cross-Origin headers, preflight",
-          desc: "Hiểu cơ chế bảo mật trình duyệt CORS để cấu hình chia sẻ tài nguyên an toàn.",
+        dom: {
+          icon: "🌳", title: "DOM Manipulation & Events", sub: "querySelector, Event listeners",
+          desc: "Tương tác trực tiếp với DOM để cập nhật nội dung, lắng nghe sự kiện người dùng.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Allow-Origin headers", "Preflight request", "CORS handling in client"],
+          checklist: ["Chọn phần tử với querySelector", "Thêm/xóa/sửa DOM elements", "Xử lý event delegation hiệu quả"],
           checkState: [false, false, false], resources: mockResources
         },
-        vdom: {
-          icon: "⚛️", title: "Virtual DOM Architecture", sub: "React diffing, Reconciliation",
-          desc: "Cơ chế Render và cập nhật DOM ảo hiệu năng cao của React giúp tối ưu hiệu năng render.",
+        jsx: {
+          icon: "⚛️", title: "JSX & React Basics", sub: "Components, Props, Rendering",
+          desc: "Bắt đầu React bằng cách viết JSX để tạo các component tái sử dụng.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Diffing algorithm", "Reconciliation cycle", "Key props optimization"],
+          checklist: ["Viết functional components", "Truyền & nhận Props", "Render conditional elements"],
           checkState: [false, false, false], resources: mockResources
         },
         hooks: {
-          icon: "⚓", title: "React Hooks (Side Effects)", sub: "useEffect, dependency arrays",
-          desc: "Sử dụng Hooks quản lý side-effects chuyên nghiệp trong functional components.",
+          icon: "🪝", title: "React Hooks Advanced", sub: "useState, useEffect, useContext",
+          desc: "Quản lý state và side-effects trong functional components với React Hooks.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["useEffect usage", "Dependencies management", "Cleanup functions"],
+          checklist: ["useState cho state management", "useEffect cho lifecycle", "useContext for global state"],
           checkState: [false, false, false], resources: mockResources
         },
-        state: {
-          icon: "📦", title: "Global State Management", sub: "Redux, Zustand, Context API",
-          desc: "Quản lý luồng dữ liệu toàn cục tập trung cho các ứng dụng web quy mô lớn.",
+        routing: {
+          icon: "🛣️", title: "React Router & Navigation", sub: "Routes, Link, useNavigate",
+          desc: "Xây dựng ứng dụng Single Page (SPA) với điều hướng mượt mà giữa các trang.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Global Store integration", "Props drilling mitigation", "State synchronization"],
+          checklist: ["Cấu hình Routes & Outlets", "Sử dụng Link & useNavigate", "Xử lý route parameters & query"],
           checkState: [false, false, false], resources: mockResources
         },
-        storage: {
-          icon: "💾", title: "Browser Storage API", sub: "LocalStorage, SessionStorage",
-          desc: "Lưu trữ dữ liệu tạm thời ngay tại trình duyệt client của người dùng.",
+        testing: {
+          icon: "✅", title: "Component Testing & Jest", sub: "Unit tests, React Testing Library",
+          desc: "Viết unit tests để đảm bảo component hoạt động chính xác, tránh regression bugs.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["LocalStorage storage limit", "SessionStorage lifetime", "JSON serialization"],
+          checklist: ["Viết Jest unit tests", "Test React components với RTL", "Đạt 80%+ code coverage"],
           checkState: [false, false, false], resources: mockResources
         },
-        optimize: {
-          icon: "⚡", title: "Component Optimization", sub: "React.memo, useMemo, useCallback",
-          desc: "Tối ưu hóa hiệu năng render, loại bỏ re-render thừa để trang web chạy mượt 60fps.",
+        bundler: {
+          icon: "📦", title: "Build Tools & Bundling", sub: "Webpack, Vite, Build optimization",
+          desc: "Tối ưu hóa bundle size, lazy loading, tree-shaking để load page nhanh hơn.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["React.memo bọc component", "useMemo cache data", "useCallback cache function"],
+          checklist: ["Cấu hình Webpack/Vite", "Code splitting & lazy loading", "Minification & compression"],
+          checkState: [false, false, false], resources: mockResources
+        },
+        deploy: {
+          icon: "🚀", title: "Deploy & Performance Optimization", sub: "Vercel, Netlify, CDN",
+          desc: "Triển khai ứng dụng lên production và tối ưu Core Web Vitals để trang load cực nhanh.",
+          status: "todo", pct: 0, cvMatch: false,
+          checklist: ["Deploy lên Vercel/Netlify", "Tối ưu LCP, FID, CLS metrics", "Cấu hình caching & CDN"],
           checkState: [false, false, false], resources: mockResources
         }
       }
@@ -219,98 +226,104 @@ function getDemoDataForRole(roleName) {
   if (norm === "data") {
     return {
       username: "Học Viên DevPath",
-      role: "Data AI / ML",
-      roleEmoji: "🧠",
+      role: "Data Engineer",
+      roleEmoji: "🔧",
       roleMeta: "10 kỹ năng cốt lõi · Lộ trình 5–8 tháng",
       score: 70,
       phases: [
-        { label: "Toán & Xử lý dữ liệu", cls: "p1" },
-        { label: "Học máy cơ bản", cls: "p2" },
-        { label: "Học sâu & Tối ưu", cls: "p3" },
-        { label: "Đánh giá & Thị giác", cls: "p4" }
+        { label: "Nền tảng Python & SQL", cls: "p1" },
+        { label: "Data Processing & ETL", cls: "p2" },
+        { label: "Big Data & Databases", cls: "p3" },
+        { label: "Monitoring & Optimization", cls: "p4" }
       ],
       cols: [
-        ["stats", "pandas", "_"],
-        ["_", "supervised", "overfitting", "kmeans"],
-        ["_", "activation", "backpropagation", "pca"],
-        ["confusion", "cv_augmentation", "_"]
+        ["python", "sql", "git"],
+        ["_", "pandas", "spark", "_"],
+        ["_", "hadoop", "kafka", "mongodb"],
+        ["airflow", "monitoring", "docker"]
       ],
       connections: [
-        ["stats", "pandas"], ["pandas", "supervised"], ["pandas", "overfitting"], ["pandas", "kmeans"],
-        ["supervised", "activation"], ["overfitting", "activation"], ["kmeans", "activation"],
-        ["activation", "backpropagation"], ["activation", "pca"],
-        ["backpropagation", "confusion"], ["pca", "confusion"],
-        ["confusion", "cv_augmentation"]
+        ["python", "pandas"], ["sql", "pandas"], ["git", "pandas"],
+        ["pandas", "spark"], ["pandas", "hadoop"], ["spark", "hadoop"],
+        ["hadoop", "kafka"], ["kafka", "mongodb"], ["mongodb", "airflow"],
+        ["airflow", "monitoring"], ["monitoring", "docker"], ["spark", "docker"]
       ],
       nodes: {
-        stats: {
-          icon: "📊", title: "Statistical Standard Deviation", sub: "Variance, standard deviation",
-          desc: "Đại lượng đo lường độ lệch chuẩn và sự phân tán của tập dữ liệu.",
+        python: {
+          icon: "🐍", title: "Python Programming Fundamentals", sub: "Syntax, OOP, Libraries",
+          desc: "Nắm vững Python cơ bản để xử lý dữ liệu, tự động hóa, và viết pipeline dữ liệu.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Tính phương sai dữ liệu", "Tính độ lệch chuẩn", "Xác định khoảng tin cậy"],
+          checklist: ["Control flow & Functions", "Object-Oriented Programming", "File handling & Exception handling"],
+          checkState: [false, false, false], resources: mockResources
+        },
+        sql: {
+          icon: "🗄️", title: "SQL Database & Queries", sub: "SELECT, JOIN, Aggregation, Indexing",
+          desc: "Viết SQL queries hiệu năng cao để truy vấn, phân tích dữ liệu từ database quan hệ.",
+          status: "todo", pct: 0, cvMatch: false,
+          checklist: ["Complex JOINs & subqueries", "Aggregation functions (GROUP BY)", "Query optimization & Index tuning"],
+          checkState: [false, false, false], resources: mockResources
+        },
+        git: {
+          icon: "🔀", title: "Git & Version Control", sub: "Repositories, Branches, Collaboration",
+          desc: "Quản lý code với Git để collaborate với team, track changes, và quản lý versions.",
+          status: "todo", pct: 0, cvMatch: false,
+          checklist: ["Git commit & push/pull", "Branching strategy", "Merge conflict resolution"],
           checkState: [false, false, false], resources: mockResources
         },
         pandas: {
-          icon: "🐼", title: "Pandas Dataframe Manipulation", sub: "Data cleaning, analysis",
-          desc: "Thao tác, làm sạch và tổng hợp dữ liệu cấu trúc bảng mạnh mẽ bằng Pandas.",
+          icon: "🐼", title: "Pandas Data Manipulation", sub: "DataFrames, Cleaning, Transformation",
+          desc: "Xử lý dữ liệu bảng hiệu quả bằng Pandas để làm sạch, transform, và phân tích dữ liệu.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Đọc/ghi tệp tin CSV/Excel", "Xử lý dữ liệu khuyết thiếu", "Groupby và Aggregation"],
+          checklist: ["Read/write CSV, Excel, JSON", "Data cleaning & missing values", "GroupBy & Aggregation operations"],
           checkState: [false, false, false], resources: mockResources
         },
-        supervised: {
-          icon: "📈", title: "Supervised Classification", sub: "Logistic regression, SVM",
-          desc: "Thuật toán học có giám sát giải quyết các bài toán phân loại nhị phân.",
+        spark: {
+          icon: "⚡", title: "Apache Spark Distributed Computing", sub: "RDD, DataFrames, SQL",
+          desc: "Xử lý dữ liệu quy mô lớn phân tán bằng Spark cho tốc độ xử lý gấp 100x so với Pandas.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Hiểu Logistic Regression", "Phân loại đa lớp", "Sử dụng thư viện Scikit-Learn"],
+          checklist: ["Spark DataFrames & RDD operations", "Spark SQL queries", "Distributed computing optimization"],
           checkState: [false, false, false], resources: mockResources
         },
-        overfitting: {
-          icon: "🎯", title: "Machine Learning Overfitting", sub: "Regularization, train-test split",
-          desc: "Nhận biết hiện tượng quá khớp và áp dụng các kỹ thuật chính quy hóa.",
+        hadoop: {
+          icon: "🐘", title: "Hadoop Ecosystem & HDFS", sub: "MapReduce, HDFS, YARN",
+          desc: "Xây dựng hệ thống lưu trữ và xử lý dữ liệu phân tán với Hadoop cho Big Data.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Train/Test split", "L1/L2 Regularization", "Cross-Validation đánh giá"],
+          checklist: ["HDFS architecture & replication", "MapReduce job design", "YARN cluster management"],
           checkState: [false, false, false], resources: mockResources
         },
-        kmeans: {
-          icon: "🔮", title: "Unsupervised K-Means Clustering", sub: "Clustering, centroids",
-          desc: "Thuật toán học không giám sát phân cụm dữ liệu dựa vào khoảng cách hình học.",
+        kafka: {
+          icon: "📨", title: "Apache Kafka Streaming", sub: "Topics, Consumers, Producers",
+          desc: "Xây dựng pipeline dữ liệu real-time bằng Kafka để xử lý streaming data từ nhiều nguồn.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Xác định số cụm K tối ưu", "Khoảng cách Euclidean", "Tập trung cụm tâm điểm"],
+          checklist: ["Kafka broker & topic configuration", "Producer & Consumer applications", "Stream processing jobs"],
           checkState: [false, false, false], resources: mockResources
         },
-        activation: {
-          icon: "🧠", title: "Deep Learning Activation Functions", sub: "ReLU, Sigmoid, Softmax",
-          desc: "Hàm kích hoạt phi tuyến giúp mạng neural học các đặc trưng phức tạp.",
+        mongodb: {
+          icon: "🍃", title: "NoSQL MongoDB Database", sub: "Collections, Aggregation pipeline",
+          desc: "Lưu trữ dữ liệu phi cấu trúc linh hoạt bằng MongoDB cho ứng dụng hiện đại.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Sử dụng ReLU", "Sigmoid cho nhị phân", "Softmax cho đa lớp"],
+          checklist: ["Document insert, update, delete", "Complex queries & filtering", "Aggregation pipeline stages"],
           checkState: [false, false, false], resources: mockResources
         },
-        backpropagation: {
-          icon: "🔄", title: "Backpropagation Optimization", sub: "Gradient descent, weights",
-          desc: "Thuật toán lan truyền ngược cập nhật trọng số mạng neural tối ưu loss.",
+        airflow: {
+          icon: "🛩️", title: "Apache Airflow Orchestration", sub: "DAGs, Operators, Scheduling",
+          desc: "Lập lịch và quản lý workflows ETL phức tạp tự động bằng Airflow DAGs.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Gradient Descent", "Tính đạo hàm riêng", "Optimizer (Adam/SGD)"],
+          checklist: ["Define DAG workflows", "Configure Airflow operators & sensors", "Monitoring & alerting"],
           checkState: [false, false, false], resources: mockResources
         },
-        pca: {
-          icon: "📉", title: "Dimensionality Reduction (PCA)", sub: "PCA, feature reduction",
-          desc: "Phương pháp giảm chiều dữ liệu giữ lại nhiều thông tin nhất.",
+        monitoring: {
+          icon: "📊", title: "Data Quality & Monitoring", sub: "Logging, Alerting, Metrics",
+          desc: "Giám sát chất lượng dữ liệu và hiệu năng pipeline để phát hiện & sửa lỗi nhanh.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Tính trị riêng/Vectơ riêng", "Giảm số chiều đặc trưng", "Trực quan hóa dữ liệu"],
+          checklist: ["Data validation & profiling", "Setup alerting rules", "Log analysis & debugging"],
           checkState: [false, false, false], resources: mockResources
         },
-        confusion: {
-          icon: "🧮", title: "Confusion Matrix Diagnostics", sub: "Precision, recall, F1-score",
-          desc: "Đo lường hiệu suất mô hình phân loại qua các chỉ số đúng/sai chi tiết.",
+        docker: {
+          icon: "🐳", title: "Docker Containerization", sub: "Images, Containers, Docker Compose",
+          desc: "Đóng gói data pipeline vào Docker containers để triển khai và scale một cách dễ dàng.",
           status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Tính Precision & Recall", "F1-score tổng quát", "Vẽ Confusion Matrix"],
-          checkState: [false, false, false], resources: mockResources
-        },
-        cv_augmentation: {
-          icon: "👁️", title: "Computer Vision Data Augmentation", sub: "Image rotation, scaling",
-          desc: "Tăng cường chất lượng dữ liệu ảnh bằng các biến thể xoay, lật, thu phóng.",
-          status: "todo", pct: 0, cvMatch: false,
-          checklist: ["Xoay/Lật ảnh ngẫu nhiên", "Thay đổi độ sáng", "Tránh overfitting trong CV"],
+          checklist: ["Create Docker images", "Docker Compose multi-container setup", "Container networking & volumes"],
           checkState: [false, false, false], resources: mockResources
         }
       }
@@ -819,4 +832,4 @@ function getDemoDataForRole(roleName) {
     }
   };
 }
-module.exports = getDemoDataForRole;
+export default getDemoDataForRole;

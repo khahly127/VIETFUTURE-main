@@ -243,21 +243,13 @@ function ProgressTracking() {
           </div>
         </div>
 
-        {/* KHU VỰC ĐIỀU HƯỚNG CHÂN TRANG (FLOW NAVIGATION) */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-800/40 pt-4">
+        {/* KHU VỰC ĐIỀU HƯỚNG CHÂN TRANG */}
+        <div className="mt-8 flex items-center justify-start border-t border-gray-800/40 pt-4">
           <button 
             onClick={() => navigate('/courses')}
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors font-semibold py-2 px-3 border border-gray-800 rounded-lg hover:bg-gray-800/40 w-full sm:w-auto justify-center"
+            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors font-semibold py-2 px-3 border border-gray-800 rounded-lg hover:bg-gray-800/40"
           >
             <ChevronLeft size={14} /> Quay lại Gợi ý khóa học
-          </button>
-          
-          <button 
-            onClick={() => navigate('/ai-consultant')} // Điều hướng thẳng tới trang cuối cùng trong luồng
-            className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-[#00e5ff] to-[#7c3aed] text-white font-bold text-xs uppercase tracking-wider rounded-lg hover:opacity-90 transition-all shadow-[0_0_20px_rgba(124,58,237,0.15)] active:scale-[0.98]"
-          >
-            Chat với AI tư vấn nghề nghiệp
-            <ArrowRight size={14} />
           </button>
         </div>
 

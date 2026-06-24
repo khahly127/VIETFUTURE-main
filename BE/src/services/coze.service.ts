@@ -1,41 +1,26 @@
 import axios from "axios";
+import { randomUUID } from "crypto";
+import { prisma } from "../config/prisma";
 
 const COZE_API_KEY = process.env.COZE_API_KEY;
 const COZE_BOT_ID = process.env.COZE_BOT_ID;
-const COZE_API_URL = (process.env.COZE_API_URL || "https://api.coze.com/v3")
+const COZE_API_URL = (
+  process.env.COZE_API_URL || "https://api.coze.com/open_api/v2/chat"
+)
   .trim()
-  .replace(/\/chat\/?$/, "")
   .replace(/\/$/, "");
 
-// Simple Q&A knowledge base để fallback
-const qaKnowledgeBase: { [key: string]: string } = {
-  "nodejs": "Node.js là một runtime JavaScript cho phép chạy JavaScript ở server-side. Nó sử dụng V8 engine, non-blocking I/O model, và rất tốt cho xây dựng các ứng dụng real-time.",
-  "react": "React là một JavaScript library để xây dựng giao diện người dùng với components reusable. Nó sử dụng Virtual DOM để tối ưu performance.",
-  "docker": "Docker là một containerization platform cho phép bạn đóng gói ứng dụng và dependencies vào một container. Nó giúp đảm bảo ứng dụng chạy giống nhau ở mọi môi trường.",
-  "database": "Database là nơi lưu trữ dữ liệu của ứng dụng. Có hai loại chính: SQL (MySQL, PostgreSQL) và NoSQL (MongoDB, Redis).",
-  "api": "API (Application Programming Interface) là một tập hợp các quy tắc cho phép các ứng dụng giao tiếp với nhau. REST API là loại API phổ biến nhất.",
-  "backend": "Backend là phần logic server-side của ứng dụng. Nó xử lý business logic, database, authentication, và API endpoints.",
-  "frontend": "Frontend là giao diện người dùng mà users tương tác trực tiếp. Nó thường được xây dựng bằng HTML, CSS, JavaScript, React, Vue, Angular.",
-  "testing": "Testing là quá trình kiểm tra phần mềm để tìm bugs. Có unit tests, integration tests, end-to-end tests.",
-  "devops": "DevOps là sự kết hợp giữa Development và Operations. Nó focuses trên automation, CI/CD, infrastructure as code, monitoring."
+type ChatHistoryMessage = {
+  role: "user" | "assistant";
+  content: string;
 };
 
-// Helper: Tìm câu trả lời từ knowledge base
-const findAnswerFromKB = (question: string): string | null => {
-  const lowerQuestion = question.toLowerCase();
-
-  for (const [keyword, answer] of Object.entries(qaKnowledgeBase)) {
-    if (lowerQuestion.includes(keyword)) {
-      return answer;
-    }
-  }
-
-  return null;
+export type CozeChatResult = {
+  answer: string;
+  conversationId: string;
 };
 
 const buildLocalCareerFallback = (message: string): string => {
-  return "Mình chưa nhận được phản hồi từ Coze. Vui lòng thử gửi lại câu hỏi sau vài giây.";
-
   const lowerMessage = message.toLowerCase();
 
   if (lowerMessage.includes("cv") || lowerMessage.includes("resume")) {
@@ -50,55 +35,15 @@ const buildLocalCareerFallback = (message: string): string => {
     return "Về lương, bạn nên định vị theo năng lực hiện tại, số năm kinh nghiệm, chất lượng dự án và thị trường tuyển dụng. Cách tốt nhất là chuẩn bị portfolio rõ ràng, chứng minh tác động trong dự án, rồi deal theo một khoảng lương thay vì một con số cố định.";
   }
 
-  if (lowerMessage.includes("học") || lowerMessage.includes("roadmap") || lowerMessage.includes("lộ trình")) {
+  if (
+    lowerMessage.includes("học") ||
+    lowerMessage.includes("roadmap") ||
+    lowerMessage.includes("lộ trình")
+  ) {
     return "Nếu bạn đang xây lộ trình học IT, hãy đi theo thứ tự: nền tảng lập trình, cấu trúc dữ liệu cơ bản, Git, database, API, framework chính, rồi làm 2-3 project hoàn chỉnh. Mỗi tuần nên có một sản phẩm nhỏ để kiểm tra mình thật sự hiểu tới đâu.";
   }
 
   return "Mình chưa kết nối được Coze API nên đang trả lời bằng chế độ dự phòng. Bạn có thể hỏi về lộ trình học, CV, phỏng vấn, kỹ năng backend/frontend, database, API, Docker hoặc DevOps; mình sẽ tư vấn theo hướng thực tế và ngắn gọn.";
-};
-
-const extractCozeContent = (data: any): string | null => {
-  const messages = Array.isArray(data?.data)
-    ? data.data
-    : data?.data?.messages || data?.messages;
-
-  if (Array.isArray(messages) && messages.length > 0) {
-    const answerMessage = messages
-      .find((message) => {
-        return (
-          message?.role === "assistant" &&
-          message?.type === "answer" &&
-          message?.content
-        );
-      });
-
-    if (answerMessage) {
-      return answerMessage.content.trim();
-    }
-
-    const plainAssistantMessage = [...messages]
-      .reverse()
-      .find((message) => {
-        const type = String(message?.type || "").toLowerCase();
-        return (
-          message?.role === "assistant" &&
-          message?.content &&
-          !type.includes("question") &&
-          !type.includes("suggest") &&
-          !type.includes("follow")
-        );
-      });
-
-    return plainAssistantMessage?.content?.trim() || null;
-  }
-
-  const content =
-    data?.data?.answer ||
-    data?.data?.content ||
-    data?.answer ||
-    data?.content;
-
-  return typeof content === "string" && content.trim() ? content.trim() : null;
 };
 
 const assertCozeConfig = () => {
@@ -118,145 +63,217 @@ const getCozeHeaders = () => ({
   "Content-Type": "application/json"
 });
 
-const listCozeMessages = async (
-  conversationId: string,
-  chatId: string
-): Promise<string | null> => {
-  const response = await axios.get(
-    `${COZE_API_URL}/chat/message/list`,
-    {
-      headers: getCozeHeaders(),
-      params: {
-        conversation_id: conversationId,
-        chat_id: chatId
-      },
-      timeout: 10000
-    }
-  );
+const extractCozeV2Content = (data: any): string | null => {
+  const messages = data?.messages || data?.data?.messages || data?.data;
 
-  if (response.data?.code && response.data.code !== 0) {
-    throw new Error(response.data?.msg || "Failed to list Coze messages");
+  if (Array.isArray(messages) && messages.length > 0) {
+    const answerMessage = messages.find((message) => {
+      return (
+        message?.role === "assistant" &&
+        message?.type === "answer" &&
+        message?.content
+      );
+    });
+
+    if (answerMessage) {
+      return String(answerMessage.content).trim();
+    }
+
+    const plainAssistantMessage = [...messages]
+      .reverse()
+      .find((message) => {
+        const type = String(message?.type || "").toLowerCase();
+        return (
+          message?.role === "assistant" &&
+          message?.content &&
+          !type.includes("question") &&
+          !type.includes("suggest") &&
+          !type.includes("follow")
+        );
+      });
+
+    if (plainAssistantMessage?.content) {
+      return String(plainAssistantMessage.content).trim();
+    }
   }
 
-  return extractCozeContent(response.data);
+  const content =
+    data?.data?.answer ||
+    data?.data?.content ||
+    data?.answer ||
+    data?.content;
+
+  return typeof content === "string" && content.trim() ? content.trim() : null;
 };
 
-const waitForCozeAnswer = async (
-  conversationId: string,
-  chatId: string
-): Promise<string | null> => {
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+const getRecentChatHistory = async (
+  conversationId: string
+): Promise<ChatHistoryMessage[]> => {
+  const records = await prisma.aIChatHistory.findMany({
+    where: { conversation_id: conversationId },
+    orderBy: { created_at: "desc" },
+    take: 10,
+    select: {
+      question: true,
+      answer: true
+    }
+  });
 
-    const response = await axios.get(
-      `${COZE_API_URL}/chat/retrieve`,
-      {
-        headers: getCozeHeaders(),
-        params: {
-          conversation_id: conversationId,
-          chat_id: chatId
-        },
-        timeout: 10000
-      }
+  return records.reverse().flatMap((record) => [
+    { role: "user" as const, content: record.question },
+    { role: "assistant" as const, content: record.answer }
+  ]);
+};
+
+const saveChatToHistory = async (
+  userId: number,
+  conversationId: string,
+  question: string,
+  answer: string
+): Promise<void> => {
+  await prisma.aIChatHistory.create({
+    data: {
+      user_id: userId,
+      conversation_id: conversationId,
+      question,
+      answer
+    }
+  });
+};
+
+const resolveConversationId = (conversationId?: string): string => {
+  if (conversationId && String(conversationId).trim()) {
+    return String(conversationId).trim();
+  }
+
+  return randomUUID();
+};
+
+// Gọi Coze API v2 với ngữ cảnh hội thoại từ database
+export const sendMessageToCoze = async (
+  userInput: string,
+  conversationId: string,
+  userId: number
+): Promise<CozeChatResult> => {
+  const trimmedInput = String(userInput || "").trim();
+  const activeConversationId = resolveConversationId(conversationId);
+
+  if (!trimmedInput) {
+    throw new Error("User input is required");
+  }
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new Error("Valid user id is required");
+  }
+
+  try {
+    console.log(
+      `[Coze] Preparing chat. conversationId=${activeConversationId}, userId=${userId}`
     );
 
-    if (response.data?.code && response.data.code !== 0) {
-      throw new Error(response.data?.msg || "Failed to retrieve Coze chat");
-    }
-
-    const status = response.data?.data?.status;
-    if (status === "completed") {
-      return await listCozeMessages(conversationId, chatId);
-    }
-
-    if (status === "failed" || status === "canceled") {
-      throw new Error(response.data?.data?.last_error?.msg || `Coze chat ${status}`);
-    }
-  }
-
-  return null;
-};
-
-// Send message to Coze bot (với fallback)
-export const sendMessageToCoze = async (
-  message: string,
-  cvContent?: string
-): Promise<string> => {
-  try {
-    console.log(`[Coze] Sending message to Coze. Key present: ${!!COZE_API_KEY}, Bot ID: ${COZE_BOT_ID}`);
+    const chatHistory = await getRecentChatHistory(activeConversationId);
+    console.log(`[Coze] Loaded ${chatHistory.length} history messages`);
 
     const configError = assertCozeConfig();
     if (configError) {
       console.warn(`[Coze] ${configError}, using local fallback`);
-      return buildLocalCareerFallback(message);
+      const fallbackAnswer = buildLocalCareerFallback(trimmedInput);
+
+      await saveChatToHistory(
+        userId,
+        activeConversationId,
+        trimmedInput,
+        fallbackAnswer
+      );
+
+      return {
+        answer: fallbackAnswer,
+        conversationId: activeConversationId
+      };
     }
 
-    // Send every user message to Coze first.
     const payload = {
       bot_id: COZE_BOT_ID,
-      user_id: `user_${Date.now()}`,
+      user: String(userId),
+      conversation_id: activeConversationId,
+      query: trimmedInput,
       stream: false,
-      additional_messages: [
-        {
-          role: "user",
-          content: message,
-          content_type: "text"
-        }
-      ]
+      chat_history: chatHistory
     };
 
-    console.log(`[Coze] API URL: ${COZE_API_URL}`);
-    const response = await axios.post(
-      `${COZE_API_URL}/chat`,
-      payload,
-      {
-        headers: getCozeHeaders(),
-        timeout: 10000
-      }
-    );
-
-    console.log("[Coze] Response received:", response.status);
+    const response = await axios.post(COZE_API_URL, payload, {
+      headers: getCozeHeaders(),
+      timeout: 30000
+    });
 
     if (response.data?.code && response.data.code !== 0) {
-      throw new Error(response.data?.msg || "Coze API returned an error");
+      const cozeError = response.data?.msg || "Coze API returned an error";
+      console.error("[Coze] API error:", {
+        code: response.data.code,
+        msg: cozeError
+      });
+      throw new Error(cozeError);
     }
 
-    const content = extractCozeContent(response.data);
-    if (content) {
-      console.log("[Coze] Got valid response from API");
-      return content;
+    const answer = extractCozeV2Content(response.data);
+    if (!answer) {
+      throw new Error("Coze API returned an empty response");
     }
 
-    const conversationId = response.data?.data?.conversation_id;
-    const chatId = response.data?.data?.id;
-    if (conversationId && chatId) {
-      const answer = await waitForCozeAnswer(conversationId, chatId);
-      if (answer) {
-        return answer;
-      }
-    }
+    await saveChatToHistory(
+      userId,
+      activeConversationId,
+      trimmedInput,
+      answer
+    );
 
-    // Fallback: Trả lời chung chung
-    console.log("[Coze] API trả về response rỗng, dùng fallback");
-    return buildLocalCareerFallback(message);
-
+    return {
+      answer,
+      conversationId: activeConversationId
+    };
   } catch (error: any) {
+    const cozeMessage =
+      error.response?.data?.msg || error.message || "Unknown Coze error";
+
     console.error("[Coze] Error:", {
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
-      message: error.message
+      message: cozeMessage
     });
 
-    // Ultimate fallback
-    const fallbackResponse = buildLocalCareerFallback(message);
-    console.log("[Fallback] Using ultimate fallback");
-    return fallbackResponse;
+    if (cozeMessage.toLowerCase().includes("cozetoken balance is insufficient")) {
+      throw new Error(
+        "Tài khoản Coze đã hết token. Vui lòng nạp thêm token tại coze.com → Settings → Billing."
+      );
+    }
+
+    const fallbackAnswer = buildLocalCareerFallback(trimmedInput);
+
+    try {
+      await saveChatToHistory(
+        userId,
+        activeConversationId,
+        trimmedInput,
+        fallbackAnswer
+      );
+    } catch (saveError: any) {
+      console.error("[Coze] Failed to save fallback chat history:", saveError.message);
+    }
+
+    return {
+      answer: fallbackAnswer,
+      conversationId: activeConversationId
+    };
   }
 };
 
 // Analyze CV and ask questions
-export const analyzeCV = async (cvContent: string): Promise<string> => {
+export const analyzeCV = async (
+  cvContent: string,
+  userId: number,
+  conversationId?: string
+): Promise<CozeChatResult> => {
   try {
     const analysisPrompt = `Hãy phân tích CV này và cho tôi biết:
 1. Các kỹ năng chính
@@ -266,7 +283,11 @@ export const analyzeCV = async (cvContent: string): Promise<string> => {
 
 CV: ${cvContent}`;
 
-    return await sendMessageToCoze(analysisPrompt, cvContent);
+    return await sendMessageToCoze(
+      analysisPrompt,
+      resolveConversationId(conversationId),
+      userId
+    );
   } catch (error: any) {
     console.error("CV analysis error:", error.message);
     throw new Error("Failed to analyze CV");
@@ -276,11 +297,17 @@ CV: ${cvContent}`;
 // Ask question about CV
 export const askQuestionAboutCV = async (
   cvContent: string,
-  question: string
-): Promise<string> => {
+  question: string,
+  userId: number,
+  conversationId?: string
+): Promise<CozeChatResult> => {
   try {
     const fullQuestion = `Dựa trên CV sau, vui lòng trả lời câu hỏi: ${question}\n\nCV:\n${cvContent}`;
-    return await sendMessageToCoze(fullQuestion, cvContent);
+    return await sendMessageToCoze(
+      fullQuestion,
+      resolveConversationId(conversationId),
+      userId
+    );
   } catch (error: any) {
     console.error("Question about CV error:", error.message);
     throw new Error("Failed to answer question about CV");
@@ -288,9 +315,17 @@ export const askQuestionAboutCV = async (
 };
 
 // General chat without CV
-export const generalChat = async (message: string): Promise<string> => {
+export const generalChat = async (
+  message: string,
+  userId: number,
+  conversationId?: string
+): Promise<CozeChatResult> => {
   try {
-    return await sendMessageToCoze(message);
+    return await sendMessageToCoze(
+      message,
+      resolveConversationId(conversationId),
+      userId
+    );
   } catch (error: any) {
     console.error("General chat error:", error.message);
     throw new Error("Failed to get chat response");

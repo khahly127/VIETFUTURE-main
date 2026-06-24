@@ -12,6 +12,7 @@ export const ChatBot = ({ userId }) => {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [conversationId, setConversationId] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -31,8 +32,12 @@ export const ChatBot = ({ userId }) => {
     setLoading(true);
 
     try {
-      const result = await cozeApi.chat(userMessage, userId);
+      const result = await cozeApi.chat(userMessage, userId, conversationId);
       const response = result.answer || "Không có phản hồi từ AI";
+
+      if (result.conversation_id) {
+        setConversationId(result.conversation_id);
+      }
 
       setMessages((prev) => [
         ...prev,
